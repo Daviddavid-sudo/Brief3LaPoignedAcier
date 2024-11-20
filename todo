@@ -1,0 +1,30 @@
+mardi matin:
+creation du lucidchart
+class dans model.py
+fichier init_db
+
+mardi am:
+populate - Script pour générer des données fictives.
+    - Répartis entre 9h et 17h.
+    - Durée : 1h.
+    - Exemples de noms : "Yoga", "Pump", "Pilates", "Musculation", "Boxe".
+    - Chaque cours est animé par un coach.
+    - Pas de chevauchement des cours.
+- **Membres** :
+    - Générer des noms et emails aléatoires.
+    - Chaque membre doit avoir une carte d’accès unique.
+- **Inscriptions** :
+    - Un membre peut s'inscrire à plusieurs cours.
+
+creer fonction 
+
+utils - Fonctions utilitaires pour manipuler les données.
+    creer des fonctions pour completer les infos 
+fonction: - cours_dispo
+          - inscrire un membre: Vérifie que le cours existe.
+                                Vérifie que le cours n'est pas complet.
+                                Vérifie qu'il n'y a pas de chevauchement d'horaires avec d'autres cours auxquels le membre est déjà inscrit.
+                                Si toutes les conditions sont respectées, une nouvelle inscription est ajoutée.
+          - Annuler une inscription.
+          - Consulter l’historique des inscriptions.
+mercredi 
