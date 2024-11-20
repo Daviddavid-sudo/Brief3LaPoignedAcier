@@ -7,7 +7,9 @@ t1 = st.text_input("Enter id")
 st.button("submit")
 # Consulter les cours disponibles.
 if st.button("See available classes", use_container_width=True):
-    st.write('call function')
+    results = utils.course_available()
+    for result in results:
+        st.write(result)
 # S'inscrire à un cours (vérification des places restantes et des conflits d'horaires).
 if st.button("Subscribe to class", use_container_width=True):
     st.write("call function")

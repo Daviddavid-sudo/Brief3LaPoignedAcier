@@ -4,9 +4,10 @@ import random
 from init_db import *
 import datetime
 
-
-
 fake = Faker()
+
+def hour_possible():
+    pass
 
 def create_n_coach(n):
     specialities = ["Yoga", "CrossFit", "Musculation", "Boxe"]

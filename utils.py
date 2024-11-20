@@ -1,54 +1,132 @@
-from sqlmodel import session, select
+from init_db import *
 from model import Course, Inscription, Member, card_acces, Coachs
 import datetime
 
 def course_available():
-    course_list = session.exec(select(Course)).all()
-    result = []
+    with Session(engine) as session:
+        course_list = select(Course).join(Inscription).group_by(Inscription.course_id).having(20-func.count(Inscription.id)>0)
+        results = session.exec(course_list)
+        list_of_courses = []
+        for course in results:
+            list_of_courses.append(course)
+    
+    return list_of_courses
 
-    for Course in course_list:
-        inscriptions = session.exec(select(Inscription).where(Inscription.course_id == Course.id)).all()
+def class_possible(coach_id,name,hours,id):
+    with Session(engine) as session:
+        statement = select(Course).join(Coachs).group_by(Course.coach_id).having(Coachs.specialty == name and Course.hours != hours and Course.id == id and Coachs.id == coach_id)
+        results = session.exec(statement)
+        list_of_courses=[]
+        for course in results:
+            list_of_courses.append(course)
 
-    remaining_space = Course.max_capacity - len(inscriptions)
-     
-    result.append({
-            "id": Course.id,
-            "nom": Course.name,
-            "horaire": Course.hours,
-            "remaining_space": remaining_space,
-        })
+# print(course_available())
 
+def register_course(id, coach_id, hour, name, id_member):
+    with Session(engine) as session:
+        if Course(id=id,max_capacity=20, hours=hour,name=name,coach_id=coach_id) in course_available():
+            member_hours = select(Course).join(Inscription).group_by(Course.hours, Inscription.member_id).having(Inscription.member_id == id_member)
+            results = session.exec(member_hours)
+            list_of_impossible_hours = []
+            for result in results:
+                list_of_impossible_hours.append(result.hours)
+                print(result)
 
-def register_course():
-    Course = session.get(Course.id)
-    if not Course:
-       return "untraceable"
-   
-    inscription = session.exec(select(Inscription).where(Inscription.course_id == Course.id)).all()
-
-    if len(inscription) == Course.max_capacity:
-       return "full course"
-   
-    Member.inscription = session.exec(select(Course).join(Inscription).where(Inscription.member_id == Member.id).all)
-
-    if any(Course.hours == Course.hours for Course in Member.inscription):
-        return "Conflit d'horaires avec un autre cours."
-
-    # Si toutes les vérifications sont réussies, on crée une nouvelle inscription
-    inscription = Inscription(
-        member_id = Member.id,
-        cours_id = Course.id,
-        date_inscription = datetime.now()  
-    )
-    session.add(inscription)  
-    session.commit()  
-    return "Inscription réussie."
+            if hour not in list_of_impossible_hours:
+                new_inscription = Inscription(member_id=id_member,course_id=id, date_inscription=datetime.datetime.now())
+                session.add(new_inscription)
+                session.commit()
+                print('sent')
+            
+            else:
+                print("already another class at this time")
+            
+        
+        else:
+            print("untraceable")
 
 
+# register_course(id=1,coach_id=4,hour=10,name="Boxe", id_member=1)
 
-def Cancel_registration():
-    Inscription = session.get(Inscription.id)
 
-    session.delete(Inscription)
-    session.commit()
-    return "Inscription annulée"
+def Cancel_registration(id):
+    with Session(engine) as session:
+        statement = select(Inscription).where(Inscription.id == id)
+        results = session.exec(statement)
+        for result in results:
+            session.delete(result)
+            session.commit()
+
+
+# Cancel_registration(5)
+
+def add_coach(name, specaility):
+    coach = Coachs(name=name, specialty=specaility)
+    with Session(engine) as session:
+        session.add(coach)
+        session.commit()
+
+# add_coach('David Scott', "CrossFit")
+
+def update_coach(id, name, speciality):
+    with Session(engine) as session:
+        statement = select(Coachs).where(Coachs.id == id)
+        results = session.exec(statement)
+        for result in results:
+            result.name = name
+            result.specialty = speciality
+            session.add(result)
+            session.commit()
+
+
+# update_coach(6, 'David David', "Yoga")
+
+def delete_coach(id):
+    with Session(engine) as session:
+        statement = select(Coachs).where(Coachs.id == id)
+        results = session.exec(statement)
+        for result in results:
+            session.delete(result)
+            session.commit()
+
+# delete_coach(3)
+
+def add_class(id, name, hours, max_capacity, coach_id):
+    course = Course(id=id, name=name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
+    if class_possible(coach_id,name,hours,id) is not None:
+        with Session(engine) as session:
+            session.add(course)
+            session.commit()
+        print("possible")
+    else:
+        print("not possible")
+
+add_class(2, "Boxe", 9, 20, 5)
+
+def update_class(id, name, hours, max_capacity, coach_id):
+    with Session(engine) as session:
+        statement = select(Course).join(Coachs).group_by(Course.coach_id).having(Coachs.specialty == name and Course.hours != hours and Course.id == id)
+        results = session.exec(statement)
+        for result in results:
+            result.name = name
+            result.hours = hours
+            result.max_capacity = max_capacity
+            result.coach_id = coach_id
+            session.add(result)
+            session.commit()
+
+
+# update_class(2, "Boxe", 14, 20, 5)
+
+def delete_class(id):
+    with Session(engine) as session:
+        statement = select(Course).where(Course.id == id)
+        results = session.exec(statement)
+        for result in results:
+            session.delete(result)
+            session.commit()
+
+# delete_class(2)
+
+def members_inscrit():
+    pass
