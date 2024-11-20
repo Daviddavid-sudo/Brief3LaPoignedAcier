@@ -1,4 +1,4 @@
-from sqlmodel import Field, Session, SQLModel, create_engine
+from sqlmodel import Field, Session, SQLModel, create_engine, select
 from model import Member, card_acces, Coachs, Course, Inscription
 
 

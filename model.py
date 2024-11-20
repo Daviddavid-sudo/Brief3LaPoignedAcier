@@ -9,6 +9,7 @@ class Member(SQLModel, table=True):
     name: str
     email: str
     card_acces_id: int | None = Field(default=None, foreign_key="card_acces.id")
+    
 
 class card_acces(SQLModel, table=True):
     UniqueConstraint("unique_number")
@@ -23,7 +24,7 @@ class Coachs(SQLModel, table=True):
 class Course(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str
-    hours: datetime.datetime
+    hours: int
     max_capacity: int = None
     coach_id: int | None = Field(default=None, foreign_key="coachs.id")
   
