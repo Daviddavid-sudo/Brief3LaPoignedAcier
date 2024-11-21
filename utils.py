@@ -128,3 +128,28 @@ def delete_class(id):
 
 # delete_class(2)
 
+def registration_history():
+    with Session(engine) as session:
+        statement = (select(
+            Inscription.member_id,
+            Inscription.course_id,
+            Inscription.date_inscription,
+            Course.name,
+            Course.hours
+            )
+        .join(Course, Course.id == Inscription.course_id)  
+        )
+        results = session.exec(statement)
+        session.commit()
+
+        history = []
+        for row in results:
+            history.append({
+                "member_id": row.member_id,
+                "cours_id": row.course_id,
+                "nom": row.name,
+                "horaire": row.hours,
+                "date_inscription": row.date_inscription,
+            })
+    return history
+print(registration_history())
