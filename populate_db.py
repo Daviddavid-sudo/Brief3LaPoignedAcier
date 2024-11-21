@@ -6,9 +6,6 @@ import datetime
 
 fake = Faker()
 
-def hour_possible():
-    pass
-
 def create_n_coach(n):
     specialities = ["Yoga", "CrossFit", "Musculation", "Boxe"]
     for i in range(1,n):
@@ -17,7 +14,6 @@ def create_n_coach(n):
         with Session(engine) as session:
             session.add(coach)
             session.commit()
-
 
 
 def create_n_people(n):
@@ -33,19 +29,23 @@ def create_n_people(n):
             session.commit()
 
 
-def create_n_cours_inscriptions(n):
+def create_n_cours_inscriptions(k,n):
+    list_of_hours = [x for x in range(9,17)]
     for i in range(1,n):
-        random_coach = random.randint(1,6)
-        hour = random.randint(9,16)
         with Session(engine) as session:
-            statement = select(Coachs.specialty).where(Coachs.id == random_coach)
+            statement = select(Coachs.specialty).where(Coachs.id == k)
             results = session.exec(statement)
             for result in results:
                 sport = result
-            course = Course(name=sport,hours=hour,max_capacity=20,coach_id=random_coach)
+                hour = random.choice(list_of_hours)
+                course = Course(name=sport,hours=hour,max_capacity=20,coach_id=k)
+
+            print(list_of_hours)
             with Session(engine) as session:
                 session.add(course)
                 session.commit()
+
+            list_of_hours.remove(hour)
 
             nb_of_participants = random.randint(1,20)
             list_of_participants = [x for x in range(20)]
@@ -60,6 +60,9 @@ def create_n_cours_inscriptions(n):
                     session.add(inscription)
                     session.commit()
 
-create_n_people(20)
-create_n_coach(6)
-create_n_cours_inscriptions(20)
+create_n_people(30)
+create_n_coach(10)
+for i in range(1,10):
+    x = random.randint(1,8)
+    create_n_cours_inscriptions(i,x)
+

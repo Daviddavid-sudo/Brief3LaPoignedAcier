@@ -101,7 +101,7 @@ def add_class(id, name, hours, max_capacity, coach_id):
     else:
         print("not possible")
 
-add_class(2, "Boxe", 9, 20, 5)
+# add_class(2, "Boxe", 9, 20, 5)
 
 def update_class(id, name, hours, max_capacity, coach_id):
     with Session(engine) as session:
@@ -128,5 +128,3 @@ def delete_class(id):
 
 # delete_class(2)
 
-def members_inscrit():
-    pass
