@@ -19,6 +19,7 @@ def class_possible(coach_id,name,hours,id):
         list_of_courses=[]
         for course in results:
             list_of_courses.append(course)
+    return list_of_courses
 
 # print(course_available())
 
@@ -93,7 +94,7 @@ def delete_coach(id):
 
 def add_class(id, name, hours, max_capacity, coach_id):
     course = Course(id=id, name=name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
-    if class_possible(coach_id,name,hours,id) is not None:
+    if course in class_possible(coach_id,name,hours,id) is not None:
         with Session(engine) as session:
             session.add(course)
             session.commit()
@@ -101,7 +102,7 @@ def add_class(id, name, hours, max_capacity, coach_id):
     else:
         print("not possible")
 
-# add_class(2, "Boxe", 9, 20, 5)
+add_class(37, "Yoga", 9, 15, 1)
 
 def update_class(id, name, hours, max_capacity, coach_id):
     with Session(engine) as session:
