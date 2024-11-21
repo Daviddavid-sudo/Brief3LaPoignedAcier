@@ -29,40 +29,44 @@ def create_n_people(n):
             session.commit()
 
 
-def create_n_cours_inscriptions(k,n):
+def create_course_inscriptions():
     list_of_hours = [x for x in range(9,17)]
-    for i in range(1,n):
-        with Session(engine) as session:
-            statement = select(Coachs.specialty).where(Coachs.id == k)
-            results = session.exec(statement)
-            for result in results:
-                sport = result
-                hour = random.choice(list_of_hours)
-                course = Course(name=sport,hours=hour,max_capacity=20,coach_id=k)
-
-            print(list_of_hours)
+    count = 1
+    for hr in list_of_hours:
+        x = random.randint(1,4)
+        specialities = ["Yoga", "CrossFit", "Musculation", "Boxe"]
+        for i in range(x):
             with Session(engine) as session:
+                sport = random.choice(specialities)
+                statement = select(Coachs.id).where(Coachs.specialty == sport)
+                results = session.exec(statement)
+                list_of_possible_coachs = []
+                for result in results:
+                    list_of_possible_coachs.append(result)
+                
+                y = random.choice(list_of_possible_coachs)
+                course = Course(name=sport, hours = hr, max_capacity=20, coach_id=y)
                 session.add(course)
                 session.commit()
 
-            list_of_hours.remove(hour)
+                nb_of_participants = random.randint(1,20)
+                list_of_participants = [x for x in range(1,40)]
+                for member in range(1,nb_of_participants):
+                    id = random.choice(list_of_participants)
+                    inscription_hour = random.randint(0,23)
+                    inscription_day = random.randint(1,28)
+                    inscription_month = random.randint(1,12)
+                    inscription = Inscription(member_id=id, course_id=count, date_inscription=datetime.datetime(2024,inscription_month,inscription_day,inscription_hour,0,0))
+                    list_of_participants.remove(id)
+                    with Session(engine) as session:
+                        session.add(inscription)
+                        session.commit()
+            count += 1
+            specialities.remove(sport)
 
-            nb_of_participants = random.randint(1,20)
-            list_of_participants = [x for x in range(20)]
-            for member in range(1,nb_of_participants):
-                id = random.choice(list_of_participants)
-                inscription_hour = random.randint(0,23)
-                inscription_day = random.randint(1,28)
-                inscription_month = random.randint(1,12)
-                inscription = Inscription(member_id=id, course_id=i, date_inscription=datetime.datetime(2024,inscription_month,inscription_day,inscription_hour,0,0))
-                list_of_participants.remove(id)
-                with Session(engine) as session:
-                    session.add(inscription)
-                    session.commit()
 
-create_n_people(30)
-create_n_coach(10)
-for i in range(1,10):
-    x = random.randint(1,8)
-    create_n_cours_inscriptions(i,x)
+create_n_people(40)
+create_n_coach(20)
+create_course_inscriptions()
+
 
