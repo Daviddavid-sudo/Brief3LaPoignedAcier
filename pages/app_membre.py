@@ -62,7 +62,7 @@ if menu == "Cancel Inscription":
     st.sidebar.markdown('Cancel inscription')
     st.title('Cancel inscription')
 
-    member_id = st.number_input("Enter id", min_value=0, step=1)
+    member_id = st.number_input("Enter member id", min_value=0, step=1)
     if member_id != 0:
         df = registration_history()
         df = df[["inscriptid", "nom", "horaire"]][df["member_id"] == member_id]
