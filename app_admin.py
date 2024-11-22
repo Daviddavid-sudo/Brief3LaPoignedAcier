@@ -53,7 +53,6 @@ if menu == "Gérer les Cours":
     
     # Ajouter un cours
     st.subheader("Ajouter un Cours")
-    course_id = st.number_input("ID du Cours", min_value=1, step=1)
     course_name = st.text_input("Nom du Cours")
     hours = st.number_input("Horaire", min_value=0, max_value=16, step=1)
     max_capacity = st.number_input("Capacité Maximale", min_value=1, step=1)
@@ -84,20 +83,45 @@ if menu == "Gérer les Cours":
 
 
 # Voir les Membres Inscrits
+# elif menu == "Voir les Membres Inscrits":
+#     st.header("Membres Inscrits")
+    
+#     course_id = st.number_input("ID du Cours pour voir les Membres", min_value=1, step=1)
+#     if st.button("Voir les Membres"):
+#         history = registration_history()
+#         members_in_course = [entry for entry in history if entry["course_id"] == course_id]
+#         if members_in_course:
+#             for member in members_in_course:
+#                 st.write(f"ID Membre: {member['member_id']}, Date d'Inscription: {member['date_inscription']}")
+#         else:
+#             st.write("Aucun membre inscrit à ce cours.")
+
 elif menu == "Voir les Membres Inscrits":
     st.header("Membres Inscrits")
     
+    # Entrée pour l'ID du cours
     course_id = st.number_input("ID du Cours pour voir les Membres", min_value=1, step=1)
+    
     if st.button("Voir les Membres"):
-        history = registration_history()
-        members_in_course = [entry for entry in history if entry["cours_id"] == course_id]
-        if members_in_course:
-            for member in members_in_course:
-                st.write(f"ID Membre: {member['member_id']}, Date d'Inscription: {member['date_inscription']}")
-        else:
-            st.write("Aucun membre inscrit à ce cours.")
-
-
+        try:
+            # Récupération de l'historique des inscriptions
+            history = registration_history()
+            
+            # Validation des données : vérifier que `history` est une liste de dictionnaires
+            if isinstance(history, list) and all(isinstance(entry, dict) for entry in history):
+                # Filtrer les membres inscrits pour le cours demandé
+                members_in_course = [entry for entry in history if entry.get("course_id") == course_id]
+                
+                if members_in_course:
+                    st.write("Membres inscrits à ce cours :")
+                    for member in members_in_course:
+                        st.write(f"ID Membre: {member.get('member_id')}, Date d'Inscription: {member.get('date_inscription')}")
+                else:
+                    st.write("Aucun membre inscrit à ce cours.")
+            else:
+                st.error("Les données des inscriptions ne sont pas valides. Veuillez vérifier.")
+        except Exception as e:
+            st.error(f"Une erreur s'est produite : {str(e)}")
 
 # Annuler une Inscription ou un Cours
 elif menu == "Annuler une Inscription ou un Cours":
@@ -119,3 +143,7 @@ elif menu == "Annuler une Inscription ou un Cours":
     if st.button("Annuler le Cours"):
         delete_class(delete_course_id)
         st.success(f"Cours {delete_course_id} annulé avec succès.")
+
+
+
+

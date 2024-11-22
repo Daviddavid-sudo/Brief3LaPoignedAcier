@@ -1,8 +1,25 @@
 from init_db import *
 from model import Course, Inscription, Member, card_acces, Coachs
 import datetime
+import pandas as pd
 
 def course_available():
+    with Session(engine) as session:
+        course_list = select(Course).join(Inscription).group_by(Inscription.course_id).having(20-func.count(Inscription.id)>0)
+        results = session.exec(course_list)
+        list_of_courses = []
+        for course in results:
+            list_of_courses.append({
+                "course_id": course.id,
+                "name": course.name,
+                "coach_id": course.coach_id,
+                "Time": str(course.hours) + "h"
+            })
+    
+    df = pd.DataFrame(list_of_courses)
+    return df
+
+def course_available_list():
     with Session(engine) as session:
         course_list = select(Course).join(Inscription).group_by(Inscription.course_id).having(20-func.count(Inscription.id)>0)
         results = session.exec(course_list)
@@ -12,42 +29,46 @@ def course_available():
     
     return list_of_courses
 
-def class_possible(coach_id,name,hours,id):
-    with Session(engine) as session:
-        statement = select(Course).join(Coachs).group_by(Course.coach_id).having(Coachs.specialty == name and Course.hours != hours and Course.id == id and Coachs.id == coach_id)
-        results = session.exec(statement)
-        list_of_courses=[]
-        for course in results:
-            list_of_courses.append(course)
-    return list_of_courses
 
-# print(course_available())
 
-def register_course(id, coach_id, hour, name, id_member):
+def register_course(coach_id, hour, name, id_member):
     with Session(engine) as session:
-        if Course(id=id,max_capacity=20, hours=hour,name=name,coach_id=coach_id) in course_available():
+        statement = select(Course).where(Course.coach_id == coach_id and Course.hours == hour)
+        id = session.exec(statement)
+        test = []
+        value = False
+        for result in id:
+            test.append(result)
+        
+        for i in test:
+            if i in course_available_list():
+                value = True
+        
+        if value:
             member_hours = select(Course).join(Inscription).group_by(Course.hours, Inscription.member_id).having(Inscription.member_id == id_member)
             results = session.exec(member_hours)
             list_of_impossible_hours = []
             for result in results:
                 list_of_impossible_hours.append(result.hours)
-                print(result)
 
             if hour not in list_of_impossible_hours:
                 new_inscription = Inscription(member_id=id_member,course_id=id, date_inscription=datetime.datetime.now())
                 session.add(new_inscription)
                 session.commit()
-                print('sent')
+                text = "sent"
+                return text
             
             else:
-                print("already another class at this time")
-            
+                text = "already another class at this time"
+                return text
         
         else:
-            print("untraceable")
+            text = "no class available"
+            return text
 
 
-# register_course(id=1,coach_id=4,hour=10,name="Boxe", id_member=1)
+
+# register_course(coach_id=7,hour=11,name="Boxe", id_member=5)
 
 
 def Cancel_registration(id):
@@ -92,9 +113,23 @@ def delete_coach(id):
 
 # delete_coach(3)
 
-def add_class(id, name, hours, max_capacity, coach_id):
-    course = Course(id=id, name=name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
-    if course in class_possible(coach_id,name,hours,id) is not None:
+def class_possible(hr, id_coach, name):
+    with Session(engine) as session:
+        course = select(Course).where(Course.coach_id == id_coach).where(Course.hours == hr)
+        results = session.exec(course)
+        course2 = select(Course).where(Course.name == name).where(Course.hours == hr)
+        results2 = session.exec(course2)
+        test = []
+        for result in results:
+            test.append(result)
+        for result in results2:
+            test.append(result)
+    return test
+
+# print(class_possible(10,2, "Musculation"))
+def add_class(name, hours, max_capacity, coach_id):
+    if len(class_possible(hours, coach_id)) == 0 :
+        course = Course(name=name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
         with Session(engine) as session:
             session.add(course)
             session.commit()
@@ -102,22 +137,25 @@ def add_class(id, name, hours, max_capacity, coach_id):
     else:
         print("not possible")
 
-add_class(37, "Yoga", 9, 15, 1)
+# add_class("Boxe", 15, 20, 1)
 
 def update_class(id, name, hours, max_capacity, coach_id):
     with Session(engine) as session:
         statement = select(Course).join(Coachs).group_by(Course.coach_id).having(Coachs.specialty == name and Course.hours != hours and Course.id == id)
         results = session.exec(statement)
-        for result in results:
-            result.name = name
-            result.hours = hours
-            result.max_capacity = max_capacity
-            result.coach_id = coach_id
-            session.add(result)
-            session.commit()
+        if len(class_possible(hours, coach_id)) == 0:
+            for result in results:
+                result.name = name
+                result.hours = hours
+                result.max_capacity = max_capacity
+                result.coach_id = coach_id
+                session.add(result)
+                session.commit()
+        else:
+            print("not possible")
 
 
-# update_class(2, "Boxe", 14, 20, 5)
+# update_class(24, "CrossFit", 15, 20, 5)
 
 def delete_class(id):
     with Session(engine) as session:
@@ -127,7 +165,7 @@ def delete_class(id):
             session.delete(result)
             session.commit()
 
-# delete_class(2)
+# delete_class(24)
 
 def registration_history():
     with Session(engine) as session:
@@ -152,5 +190,7 @@ def registration_history():
                 "horaire": row.hours,
                 "date_inscription": row.date_inscription,
             })
-    return history
-print(registration_history())
+    df = pd.DataFrame(history)
+    return df
+
+# print(registration_history())
