@@ -102,7 +102,7 @@ elif menu == "Members subscribed":
     course_id = st.number_input("Course id", min_value=1, step=1)
     if st.button("See members subscribed"):
         df = registration_history()
-        df = df["member_id"][df["cours_id"] == course_id]
+        df = df[df["cours_id"] == course_id]
         st.table(df)
         
 
