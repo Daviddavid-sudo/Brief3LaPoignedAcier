@@ -113,10 +113,17 @@ def delete_coach(id):
     with Session(engine) as session:
         statement = select(Coachs).where(Coachs.id == id)
         results = session.exec(statement)
+        test = []
         for result in results:
+            test.append(result)
             session.delete(result)
             session.commit()
-
+        if len(test) == 0:
+            text = "No coach"
+            return text
+        else:
+            text = "Deleted"
+            return text
 # delete_coach(3)
 
 def class_possible(hr, id_coach, name):
@@ -172,10 +179,17 @@ def delete_class(id):
     with Session(engine) as session:
         statement = select(Course).where(Course.id == id)
         results = session.exec(statement)
+        test = []
         for result in results:
+            test.append(result)
             session.delete(result)
             session.commit()
-
+        if len(test) == 0:
+            text = "No class"
+            return text
+        else:
+            text = "Deleted"
+            return text
 # delete_class(10)
 
 def registration_history():
@@ -207,3 +221,35 @@ def registration_history():
     return df
 
 # print(registration_history())
+
+def Coach_dataframe():
+    with Session(engine) as session:
+        statement = select(Coachs)
+        results = session.exec(statement)
+        session.commit()
+        coach_list=[]
+        for row in results:
+            coach_list.append({
+                "id": row.id,
+                "name": row.name,
+                "speciality": row.specialty,
+            })
+        df = pd.DataFrame(coach_list)
+        return df
+
+def Class_dataframe():
+    with Session(engine) as session:
+        statement = select(Course)
+        results = session.exec(statement)
+        session.commit()
+        class_list=[]
+        for row in results:
+            class_list.append({
+                "id": row.id,
+                "name": row.name,
+                "coach_id": row.coach_id,
+                "time": row.hours,
+                "max_capacity": row.max_capacity,
+            })
+        df = pd.DataFrame(class_list)
+        return df

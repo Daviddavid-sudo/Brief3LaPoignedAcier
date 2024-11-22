@@ -68,7 +68,7 @@ if menu == "Cancel Inscription":
         df = df[["inscriptid", "nom", "horaire"]][df["member_id"] == member_id]
         st.table(df)
 
-        t1 = st.text_input("id")
+        t1 = st.text_input("Enter inscriptid you want to cancel")
         if st.button("cancel inscription"):
             txt = Cancel_registration(t1)
             if txt:
