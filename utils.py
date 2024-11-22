@@ -30,43 +30,43 @@ def course_available_list():
     return list_of_courses
 
 
-
 def register_course(coach_id, hour, name, id_member):
     with Session(engine) as session:
-        statement = select(Course).where(Course.coach_id == coach_id and Course.hours == hour)
+        statement = select(Course).where(Course.coach_id == coach_id).where(Course.hours == hour)
         id = session.exec(statement)
         test = []
         value = False
         for result in id:
             test.append(result)
-        
-        for i in test:
-            if i in course_available_list():
-                value = True
-        
-        if value:
-            member_hours = select(Course).join(Inscription).group_by(Course.hours, Inscription.member_id).having(Inscription.member_id == id_member)
-            results = session.exec(member_hours)
-            list_of_impossible_hours = []
-            for result in results:
-                list_of_impossible_hours.append(result.hours)
 
-            if hour not in list_of_impossible_hours:
-                new_inscription = Inscription(member_id=id_member,course_id=id, date_inscription=datetime.datetime.now())
+        for i in test:
+            value = True
+
+        if value:
+            cid = select(Course.id).where(Course.coach_id == coach_id).where(Course.hours == hour)
+            testid = session.exec(cid)
+            courseid = []
+            for i in testid:
+                courseid.append(i)
+            mb = select(Inscription.member_id).where(Inscription.course_id == courseid[0])
+            test3 = session.exec(mb)
+            list_of_members = []
+            for t in test3:
+                list_of_members.append(t)
+
+            if id_member in list_of_members:
+                text = 'already subscribed'
+                return text
+            else:
+                new_inscription = Inscription(member_id=id_member,course_id=courseid[0], date_inscription=datetime.datetime.now())
                 session.add(new_inscription)
                 session.commit()
                 text = "sent"
                 return text
-            
-            else:
-                text = "already another class at this time"
-                return text
-        
+
         else:
             text = "no class available"
             return text
-
-
 
 # register_course(coach_id=7,hour=11,name="Boxe", id_member=5)
 
@@ -75,10 +75,16 @@ def Cancel_registration(id):
     with Session(engine) as session:
         statement = select(Inscription).where(Inscription.id == id)
         results = session.exec(statement)
+        test = []
         for result in results:
+            test.append(result)
             session.delete(result)
             session.commit()
 
+        if len(test) == 0:
+            return False
+        else:
+            return True
 
 # Cancel_registration(5)
 
