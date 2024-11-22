@@ -1,2 +1,3 @@
 sqlmodel==
 Faker==
+streamlit
