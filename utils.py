@@ -86,7 +86,7 @@ def Cancel_registration(id):
         else:
             return True
 
-# Cancel_registration(5)
+# print(Cancel_registration(2))
 
 def add_coach(name, specaility):
     coach = Coachs(name=name, specialty=specaility)
@@ -134,14 +134,16 @@ def class_possible(hr, id_coach, name):
 
 # print(class_possible(10,2, "Musculation"))
 def add_class(name, hours, max_capacity, coach_id):
-    if len(class_possible(hours, coach_id)) == 0 :
+    if len(class_possible(hours, coach_id, name)) == 0 :
         course = Course(name=name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
         with Session(engine) as session:
             session.add(course)
             session.commit()
-        print("possible")
+        text = "possible"
+        return text
     else:
-        print("not possible")
+        text ="not possible"
+        return text
 
 # add_class("Boxe", 15, 20, 1)
 
@@ -149,7 +151,7 @@ def update_class(id, name, hours, max_capacity, coach_id):
     with Session(engine) as session:
         statement = select(Course).join(Coachs).group_by(Course.coach_id).having(Coachs.specialty == name and Course.hours != hours and Course.id == id)
         results = session.exec(statement)
-        if len(class_possible(hours, coach_id)) == 0:
+        if len(class_possible(hours, coach_id,name)) == 0:
             for result in results:
                 result.name = name
                 result.hours = hours
@@ -157,8 +159,11 @@ def update_class(id, name, hours, max_capacity, coach_id):
                 result.coach_id = coach_id
                 session.add(result)
                 session.commit()
+                text = "possible"
+                return text
         else:
-            print("not possible")
+            text ="not possible"
+            return text
 
 
 # update_class(24, "CrossFit", 15, 20, 5)
@@ -171,11 +176,12 @@ def delete_class(id):
             session.delete(result)
             session.commit()
 
-# delete_class(24)
+# delete_class(10)
 
 def registration_history():
     with Session(engine) as session:
         statement = (select(
+            Inscription.id,
             Inscription.member_id,
             Inscription.course_id,
             Inscription.date_inscription,
@@ -190,6 +196,7 @@ def registration_history():
         history = []
         for row in results:
             history.append({
+                "inscriptid": row.id,
                 "member_id": row.member_id,
                 "cours_id": row.course_id,
                 "nom": row.name,

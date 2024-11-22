@@ -11,7 +11,7 @@ st.title("Interface Administrateur")
 # Sidebar 
 menu = st.sidebar.selectbox(
     "Menu",
-    ["Gérer les Coachs", "Gérer les Cours", "Voir les Membres Inscrits", "Annuler une Inscription ou un Cours"]
+    ["Modifier The Coaches", "Modifier les Cours", "Voir les Membres Inscrits", "Annuler une Inscription ou un Cours"]
 )
 #  Gestion des Coachs
 if menu == "Gérer les Coachs":
@@ -53,32 +53,41 @@ if menu == "Gérer les Cours":
     
     # Ajouter un cours
     st.subheader("Ajouter un Cours")
-    course_name = st.text_input("Nom du Cours")
-    hours = st.number_input("Horaire", min_value=0, max_value=16, step=1)
-    max_capacity = st.number_input("Capacité Maximale", min_value=1, step=1)
-    coach_id = st.number_input("ID du Coach Responsable", min_value=1, step=1)
-    if st.button("Ajouter le Cours"):
-        add_class(course_id, course_name, hours, max_capacity, coach_id)
-        st.success(f"Cours {course_name} ajouté avec succès.")
+    course_name = st.selectbox(
+    "Choose a sport",
+    ("","Boxe", "Yoga", "Musculation", "Crossfit"),
+)
+    if course_name != "":
+        hours = st.number_input("Horaire", min_value=9, max_value=16, step=1)
+        max_capacity = st.number_input("Capacité Maximale", min_value=1, step=1)
+        coach_id = st.number_input("ID du Coach Responsable", min_value=1, step=1)
+        if st.button("Ajouter le Cours"):
+            t = add_class(name=course_name, hours=hours, max_capacity=max_capacity, coach_id=coach_id)
+            if t == "not possible":
+                st.error("not possible")
+            else:
+                st.success(f"Cours {course_name} ajouté avec succès.")
 
       # Modifier un cours
     st.subheader("Modifier un Cours")
     update_course_id = st.number_input("ID du Cours à Modifier", min_value=1, step=1)
     new_course_name = st.text_input("Nouveau Nom du Cours")
-    new_hours = st.number_input("Nouvel Horaire", min_value=0, max_value=16, step=1)
+    new_hours = st.number_input("Nouvel Horaire", min_value=9, max_value=16, step=1)
     new_capacity = st.number_input("Nouvelle Capacité", min_value=1, step=1)
     new_coach_id = st.number_input("Nouveau ID Coach Responsable", min_value=1, step=1)
     if st.button("Modifier le Cours"):
-        update_class(update_course_id, new_course_name, new_hours, new_capacity, new_coach_id)
-        st.success(f"Cours {update_course_id} mis à jour avec succès.")
-    # else:
-    #     st.error("Veuillez remplir tous les champs.")
+        q = update_class(update_course_id, new_course_name, new_hours, new_capacity, new_coach_id)
+        if q == "not possible":
+                st.error("not possible")
+        else:
+            st.success(f"Cours {course_name} modifie avec succès.")
+
 
     # Supprimer un cours
     st.subheader("Supprimer un Cours")
     delete_course_id = st.number_input("ID du Cours à supprimer", min_value=1, step=1)
     if st.button("Supprimer le Cours"):
-        delete_coach(delete_course_id)
+        delete_class(delete_course_id)
         st.success(f"Cours {delete_course_id} supprimé.")
 
 
@@ -98,30 +107,13 @@ if menu == "Gérer les Cours":
 
 elif menu == "Voir les Membres Inscrits":
     st.header("Membres Inscrits")
-    
-    # Entrée pour l'ID du cours
     course_id = st.number_input("ID du Cours pour voir les Membres", min_value=1, step=1)
-    
     if st.button("Voir les Membres"):
-        try:
-            # Récupération de l'historique des inscriptions
-            history = registration_history()
-            
-            # Validation des données : vérifier que `history` est une liste de dictionnaires
-            if isinstance(history, list) and all(isinstance(entry, dict) for entry in history):
-                # Filtrer les membres inscrits pour le cours demandé
-                members_in_course = [entry for entry in history if entry.get("course_id") == course_id]
-                
-                if members_in_course:
-                    st.write("Membres inscrits à ce cours :")
-                    for member in members_in_course:
-                        st.write(f"ID Membre: {member.get('member_id')}, Date d'Inscription: {member.get('date_inscription')}")
-                else:
-                    st.write("Aucun membre inscrit à ce cours.")
-            else:
-                st.error("Les données des inscriptions ne sont pas valides. Veuillez vérifier.")
-        except Exception as e:
-            st.error(f"Une erreur s'est produite : {str(e)}")
+        df = registration_history()
+        df = df["member_id"][df["cours_id"] == course_id]
+        st.table(df)
+        
+
 
 # Annuler une Inscription ou un Cours
 elif menu == "Annuler une Inscription ou un Cours":
@@ -131,11 +123,11 @@ elif menu == "Annuler une Inscription ou un Cours":
     st.subheader("Annuler une Inscription")
     inscription_id = st.number_input("ID de l'Inscription à Annuler", min_value=1, step=1)
     if st.button("Annuler l'Inscription"):
-        try:
-            Cancel_registration(inscription_id)
+        p = Cancel_registration(inscription_id)
+        if p:
             st.success("Inscription annulée avec succès.")
-        except Exception as e:
-            st.error(f"Erreur : {e}")
+        else:
+            st.error("class doesnt exist")
 
     # Annuler un cours
     st.subheader("Annuler un Cours")
